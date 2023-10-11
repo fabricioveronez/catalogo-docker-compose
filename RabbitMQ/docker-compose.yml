@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  rabbitmq:
+    container_name: RabbitMQ
+    image: bitnami/rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672" 
+      - "61613:61613" 
+    environment:
+      RABBITMQ_DEFAULT_USER: RabbitUser
+      RABBITMQ_DEFAULT_PASS: RabbitPWD

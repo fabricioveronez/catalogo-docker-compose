@@ -1,0 +1,20 @@
+version: '3'
+
+volumes:
+  sqlvol:
+    driver: local
+
+services:
+  sql:
+    image: "mcr.microsoft.com/mssql/server:2017-latest"
+    volumes: 
+      - sqlvol:/var/opt/mssql
+    ports:
+      - "1433:1433"
+      - "1434:1434"
+      - "443:443"
+    environment:      
+      SA_PASSWORD: "SqlServer@123"
+      ACCEPT_EULA: "Y"   
+
+

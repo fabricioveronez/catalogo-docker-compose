@@ -1,0 +1,39 @@
+version: '3.3'
+
+volumes:
+  db_blog:
+  wordpress_vol:
+
+networks: 
+  blog_net: 
+    driver: bridge
+
+services:
+  dbblog:
+    image: mariadb:10.3.8
+    volumes:
+     - db_blog:/var/lib/mysql
+    ports:
+     - "3306:3306"
+    networks:
+     - blog_net
+    environment:
+      MYSQL_ROOT_PASSWORD: senha#1234
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: UserBlog
+      MYSQL_PASSWORD: PwdBlog
+
+  blog:
+    depends_on:
+     - dbblog
+    image: wordpress:latest
+    volumes:
+     - wordpress_vol:/var/www/html
+    ports:
+     - "8181:80"
+    networks:
+     - blog_net
+    environment:
+      WORDPRESS_DB_HOST: dbblog:3306
+      WORDPRESS_DB_USER: UserBlog
+      WORDPRESS_DB_PASSWORD: PwdBlog

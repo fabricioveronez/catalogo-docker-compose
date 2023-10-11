@@ -1,0 +1,14 @@
+version: '3'
+services:
+  chartmuseum:
+    image: chartmuseum/chartmuseum
+    ports:
+      - '8081:8080'
+    volumes:
+    - chartmuseum_data:/home/chartmuseum
+    environment:
+        DEBUG: 1       
+        STORAGE: local 
+        STORAGE_LOCAL_ROOTDIR: /home/chartmuseum
+volumes:
+  chartmuseum_data:    

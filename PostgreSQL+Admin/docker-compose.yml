@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  postgree:
+    image: postgres:latest
+    ports: 
+      - "5432:5432"
+    networks: 
+      - postgree_network
+    environment:
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: Pg@123
+
+  pgAdmin:
+    image: dpage/pgadmin4
+    ports: 
+      - "8080:80"
+    networks: 
+      - postgree_network
+    environment: 
+      PGADMIN_DEFAULT_EMAIL: fabricio@veronez.dev
+      PGADMIN_DEFAULT_PASSWORD: PgAdmin@123
+
+networks: 
+  postgree_network: 
+    driver: bridge
+
+
+
+

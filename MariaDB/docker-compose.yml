@@ -1,0 +1,17 @@
+version: '3.3'
+
+volumes:
+  maria_store:
+
+services:
+   dbblog:
+     image: mariadb
+    volumes:
+      - maria_store:/var/lib/mysql
+     ports:
+       - "3306:3306"
+     environment:
+       MYSQL_ROOT_PASSWORD: MySql@123
+       MYSQL_DATABASE: defaultdatabase
+       MYSQL_USER: User123
+       MYSQL_PASSWORD: Pwd123
