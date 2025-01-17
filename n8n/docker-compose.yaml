@@ -1,104 +1,39 @@
-version: "3"
-
-networks:
-  n8n:
-    driver: bridge
+version: "3.8"
 
 services:
-  traefik:
-    image: "traefik"
-    restart: always
-    networks: 
-      - n8n
-    command:
-      - "--api=true"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
-      - "--certificatesresolvers.mytlschallenge.acme.email=${SSL_EMAIL}"
-      - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n_user
+      POSTGRES_PASSWORD: strong_password
     volumes:
-      - ${DATA_FOLDER}/letsencrypt:/letsencrypt
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
 
   n8n:
-    image: n8nio/n8n
-    restart: always
-    networks: 
-      - n8n    
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n
     ports:
       - "5678:5678"
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
-      - traefik.http.routers.n8n.tls=true
-      - traefik.http.routers.n8n.entrypoints=web,websecure
-      - traefik.http.routers.n8n.tls.certresolver=mytlschallenge
-      - traefik.http.middlewares.n8n.headers.SSLRedirect=true
-      - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
-      - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
-      - traefik.http.middlewares.n8n.headers.contentTypeNosniff=true
-      - traefik.http.middlewares.n8n.headers.forceSTSHeader=true
-      - traefik.http.middlewares.n8n.headers.SSLHost=${DOMAIN_NAME}
-      - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
-      - traefik.http.middlewares.n8n.headers.STSPreload=true
-      - traefik.http.routers.n8n.middlewares=n8n@docker
-    environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER
-      - N8N_BASIC_AUTH_PASSWORD
-      - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=https
-      - NODE_ENV=production
-      - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_DATABASE=postgree_n8n
-      - DB_POSTGRESDB_HOST=postgree
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_USER=n8n
-      - DB_POSTGRESDB_SCHEMA=public
-      - DB_POSTGRESDB_PASSWORD=Pg&123
     volumes:
-      - ${DATA_FOLDER}/.n8n:/home/node/.n8n
-
-  postgree_n8n:
-    image: postgres:latest
-    ports: 
-      - "5432:5432"
-    networks: 
-      - n8n
+      - n8n_data:/home/node/.n8n
     environment:
-      POSTGRES_USER: n8n
-      POSTGRES_PASSWORD: Pg&123
-      POSTGRES_DB: n8n
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - TZ=America/Sao_Paulo
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=n8n_user
+      - DB_POSTGRESDB_PASSWORD=strong_password
+    depends_on:
+      - postgres
+    restart: unless-stopped
 
-  postgree_dados:
-    image: postgres:latest
-    ports: 
-      - "5432:5432"
-    networks: 
-      - n8n
-    environment:
-      POSTGRES_USER: dados
-      POSTGRES_PASSWORD: Pg&123
-      POSTGRES_DB: dados
-
-  pgAdmin:
-    image: dpage/pgadmin4
-    ports: 
-      - "8080:80"
-    networks: 
-      - n8n
-    environment: 
-      PGADMIN_DEFAULT_EMAIL: fabricio@veronez.dev
-      PGADMIN_DEFAULT_PASSWORD: PgAdmin@123
+volumes:
+  n8n_data:
+  postgres_data:
