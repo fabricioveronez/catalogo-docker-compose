@@ -30,7 +30,7 @@ services:
     volumes:
      - wordpress_vol:/var/www/html
     ports:
-     - "8181:80"
+     - "8080:80"
     networks:
      - blog_net
     environment:
