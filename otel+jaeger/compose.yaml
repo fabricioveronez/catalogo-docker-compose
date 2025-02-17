@@ -1,0 +1,44 @@
+services:
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.102.1
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yaml
+    ports:
+      - 13133:13133  # health check 
+      - 4318:4318  # OTLP HTTP 
+    depends_on:
+      - jaeger
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:13133"]
+      interval: 5s
+      retries: 10
+      start_period: 10s
+      timeout: 3s
+    networks:
+      - otel_net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    ports:
+      - "16686:16686"  # UI do Jaeger
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    networks:
+      - otel_net
+
+  app-a:
+    image: fabricioveronez/tracing-tail-python
+    build:
+      context: ./src
+      dockerfile: ./Dockerfile
+    environment:
+      APP_NAME: "app-a"
+    ports:
+      - "8000:8000" 
+    networks:
+      - otel_net      
