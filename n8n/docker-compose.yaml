@@ -8,6 +8,7 @@ services:
       POSTGRES_DB: n8n
       POSTGRES_USER: n8n_user
       POSTGRES_PASSWORD: strong_password
+      N8N_SECURE_COOKIE: false
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -30,6 +31,8 @@ services:
       - DB_POSTGRESDB_PORT=5432
       - DB_POSTGRESDB_USER=n8n_user
       - DB_POSTGRESDB_PASSWORD=strong_password
+      - N8N_SECURE_COOKIE=false
+      - N8N_PROTOCOL=http
     depends_on:
       - postgres
     restart: unless-stopped
